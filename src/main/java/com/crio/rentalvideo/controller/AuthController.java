@@ -1,28 +1,68 @@
 package com.crio.rentalvideo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.crio.rentalvideo.dto.LoginRequest;
 import com.crio.rentalvideo.dto.RegisterRequest;
-import com.crio.rentalvideo.service.AuthService;
+import com.crio.rentalvideo.entity.Role;
+import com.crio.rentalvideo.entity.User;
+import com.crio.rentalvideo.repository.UserRepository;
+import com.crio.rentalvideo.security.JwtUtil;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
+
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(
-            @RequestBody RegisterRequest request) {
+    public String register(@RequestBody RegisterRequest request) {
 
-        return ResponseEntity.ok(
-                authService.register(request)
+        User user = new User();
+
+        user.setEmail(request.getEmail());
+
+        user.setPassword(
+                passwordEncoder.encode(request.getPassword())
         );
+
+        user.setFirstName(request.getFirstName());
+
+        user.setLastName(request.getLastName());
+
+        user.setRole(
+                request.getRole() == null
+                        ? Role.CUSTOMER
+                        : request.getRole()
+        );
+
+        userRepository.save(user);
+
+        return "User Registered";
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+
+        User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow();
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new RuntimeException("Invalid Password");
+        }
+
+        return JwtUtil.generateToken(user.getEmail());
     }
 }

@@ -1,7 +1,6 @@
 package com.crio.rentalvideo.config;
 
 import org.springframework.security.config.Customizer;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,30 +18,30 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
 
-                // Public APIs
-                .requestMatchers("/api/auth/**").permitAll()
+                        // Public APIs
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                // Admin APIs
-                .requestMatchers(HttpMethod.POST, "/api/videos/**")
-                .hasRole("ADMIN")
+                        // ADMIN only
+                        .requestMatchers(HttpMethod.POST, "/api/videos/**")
+                        .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.PUT, "/api/videos/**")
-                .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/videos/**")
+                        .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.DELETE, "/api/videos/**")
-                .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/videos/**")
+                        .hasRole("ADMIN")
 
-                // Customer + Admin
-                .requestMatchers(HttpMethod.GET, "/api/videos/**")
-                .authenticated()
+                        // Logged in users
+                        .requestMatchers(HttpMethod.GET, "/api/videos/**")
+                        .authenticated()
 
-                .anyRequest()
-                .authenticated()
-            )
-            .httpBasic(Customizer.withDefaults());
+                        .anyRequest()
+                        .authenticated()
+                )
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

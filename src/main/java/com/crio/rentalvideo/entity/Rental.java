@@ -9,17 +9,17 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class Video {
+public class Rental {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    @ManyToOne
+    private User user;
 
-    private String director;
+    @ManyToOne
+    private Video video;
 
-    private String genre;
-
-    private boolean available = true;
+    private boolean active = true;
 }
